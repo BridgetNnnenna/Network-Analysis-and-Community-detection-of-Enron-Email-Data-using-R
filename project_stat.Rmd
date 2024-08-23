@@ -1,0 +1,367 @@
+---
+title: "Final Stat"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+date: "2024-08-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+library(igraph)
+library(igraphdata)
+library(blockmodels)
+enron <- read.table("C:\\Users\\bridget.chukwu\\Documents\\email-dnc-corecipient.edges", skip = 1, sep = " ", header = FALSE )
+# Create a graph object from the first two columns
+z <- graph_from_data_frame(enron[, 1:2], directed = TRUE)
+# Plot the graph
+plot(z)
+
+
+```
+
+
+
+```{r}
+## get degree of nodes
+deg=degree(z,V(z))  ## degree of all the nodes
+deg
+
+## distribution of degrees and comparison
+degdist=degree_distribution(z)
+degdist
+
+plot(degdist)
+
+## strength 
+strength(z)
+deg
+```
+```{r}
+##diameter
+diameter(z)
+
+## clique
+cliques(z)
+
+max_cliques(z)
+
+##centrality
+#degree centrality
+deg=degree(z,V(z))  ## degree of all the nodes
+deg
+deg/vcount(z)
+
+#closeness centrality
+closeness(z,V(z))
+
+#betweenness centrality
+betweenness(z,V(z))
+```
+
+```{r}
+##  Visualize node size by degree or centrality
+
+par(mfrow = c(1,1))
+V(z)$size=betweenness(z,V(z))*2
+
+plot(z)
+
+closeness(z,V(z))
+V(z)$size=closeness(z,V(z))*500
+
+
+
+deg=degree(z,V(z))  ## degree of all the nodes
+deg
+V(z)$size=100*deg/vcount(z)
+plot(z)
+
+##cliques
+# Assuming edges is your data frame
+
+edges <- read.table("C:/Users/bridget.chukwu/Documents/email-dnc-corecipient.edges", 
+                    skip = 1, sep = " ", header = FALSE)
+
+# Create a graph object
+enron <- graph_from_data_frame(edges[, 1:2], directed = TRUE)
+
+# Check if enron is a valid graph object
+print(class(enron))  # Should return "igraph"
+
+# Convert to undirected and simplify
+u_enron <- as.undirected(enron, mode = "collapse") %>% simplify()
+
+# Plot the undirected graph
+plot(u_enron)
+
+vcount(u_enron)
+ecount(u_enron)
+
+g=u_enron
+
+V(u_enron)$label=""
+V(u_enron)$size=4
+plot(u_enron)
+
+clique_num(u_enron)  ## the number of nodes in largest clique
+
+lc_enron <- largest_cliques(u_enron)  ## find all the largest cliques
+length(lc_enron)
+```
+```{r}
+clique1=lc_enron[[1]]
+
+## find degree of nodes in clique 1
+clique1 <- V(u_enron)[1:5]  # Replace with actual method to find the clique
+
+# Calculate the degree of vertices in clique1
+deg.clique1 <- degree(u_enron, clique1)
+deg.clique1
+
+
+deg=degree(u_enron)  ## degree of all nodes
+deg
+
+summary(deg.clique1)
+
+
+#Structure of network
+
+## global cluster coefficient
+transitivity(enron, type=c("global"))
+
+## individual cluster coefficient
+transitivity(enron, type=c("local"))
+
+## average cluster coefficient
+transitivity(enron, type=c("average"))
+
+
+## assortativity coefficient
+
+assortativity(enron,V(enron))  ## positive
+
+```
+
+```{r}
+GN<-cluster_edge_betweenness(z)
+print(GN)
+plot_dendrogram(GN)
+```
+
+
+```{r}
+#Modularity method
+optimal <- cluster_optimal(z)  ### maximize modularity
+optimal
+
+## leading eigenvector method
+
+clu=cluster_leading_eigen(z)
+clu
+
+## spinglass method
+# Load necessary packages
+library(igraph)
+library(magrittr)  # For the pipe operator %>%
+
+# Assuming 'z' is your original graph object
+# Convert to an undirected graph and simplify it
+u_enron <- as.undirected(z, mode = "collapse") %>% simplify()
+
+# Find the connected components
+components <- clusters(u_enron)
+
+# Extract the largest connected component
+largest_component <- which.max(components$csize)
+subgraph <- induced_subgraph(u_enron, which(components$membership == largest_component))
+
+# Run the Spinglass community detection algorithm on the largest connected component
+c1 <- cluster_spinglass(subgraph, gamma = 0.5)
+c2 <- cluster_spinglass(subgraph, gamma = 1)
+c3 <- cluster_spinglass(subgraph, gamma = 2)
+
+# Check the number of communities
+cat("Number of communities with gamma = 0.5:", length(c1), "\n")
+cat("Number of communities with gamma = 1:", length(c2), "\n")
+cat("Number of communities with gamma = 2:", length(c3), "\n")
+
+# Access the members of a specific community
+community_1 <- membership(c1)
+
+# Print the community membership
+print(community_1)
+
+# Plot the communities
+plot(c1, subgraph)
+## label propagation algorithm
+
+cm=cluster_label_prop(z)
+cm
+```
+
+```{r}
+##  plot the detected communities
+z1= z
+V(z1)$attr=membership(GN)
+V(z1)[attr==1]$color="green"   ## ##Girvan-Newman community
+V(z1)[attr==2]$color="red"
+V(z1)[attr==3]$color="blue"
+V(z1)[attr==4]$color="yellow"
+V(z1)[attr==5]$color="orange"
+
+plot(z1)
+## modularity detected community
+z2=z
+V(z2)$attr=membership(optimal)
+V(z2)[attr==1]$color="green"   ## modularity detected community
+V(z2)[attr==2]$color="red"
+V(z2)[attr==3]$color="blue"
+V(z2)[attr==4]$color="yellow"
+V(z2)[attr==5]$color="orange"
+
+plot(z2)
+
+##cluster-eigenvalue community
+z3=z
+V(z3)$attr=membership(clu)
+V(z3)[attr==1]$color="green"    
+V(z3)[attr==2]$color="red"
+V(z3)[attr==3]$color="blue"
+V(z3)[attr==4]$color="yellow"
+V(z3)[attr==5]$color="orange"
+plot(z3)
+
+##label propagation algorithm
+z4=z
+V(z4)$attr=membership(cm)
+V(z4)[attr==1]$color="green"    
+V(z4)[attr==2]$color="red"
+V(z4)[attr==3]$color="blue"
+V(z4)[attr==4]$color="yellow"
+V(z4)[attr==5]$color="orange"
+plot(z4)
+
+
+###Evaluating performance of algorithm employing SBM
+## generate SBM with 2 communities
+## GN algorithm
+# Load necessary packages
+library(igraph)
+library(magrittr)  # For the pipe operator %>%
+library(RMTstat)
+
+# PART 1: Stochastic Block Model (SBM) and Girvan-Newman Algorithm
+p <- 0.5
+q <- 0.1
+n <- 71
+n1 <- 35  # Adjusted to a more balanced community size
+
+mat <- matrix(c(p, q, q, p), 2, 2, byrow = TRUE)
+bsize <- c(n1, n - n1)
+
+g.sbm <- sample_sbm(n, mat, bsize)
+true.member <- c(rep(1, n1), rep(2, (n - n1)))
+
+# Plot the generated SBM graph
+V(g.sbm)$shape[true.member == 1] <- "circle"  
+V(g.sbm)$shape[true.member == 2] <- "square"
+plot(g.sbm, main = "SBM Graph with p = 0.5, q = 0.1")
+
+# Apply Girvan-Newman community detection
+gn <- cluster_edge_betweenness(g.sbm)
+GNmember <- membership(gn)
+
+# Assign colors based on detected communities
+V(g.sbm)$color <- c("red", "blue", "yellow", "orange", "green")[GNmember]
+plot(g.sbm, main = "Girvan-Newman, n = 71, p = 0.5, q = 0.1")
+
+# Compare detected community with true community
+diff_gn <- compare(GNmember, true.member)
+print(diff_gn)
+
+# PART 2: Leading Eigenvector Algorithm
+p <- 0.8
+q <- 0.2
+n <- 68
+n1 <- 34  # Adjusted to a more balanced community size
+
+mat <- matrix(c(p, q, q, p), 2, 2, byrow = TRUE)
+bsize <- c(n1, n - n1)
+
+g1.sbm <- sample_sbm(n, mat, bsize)
+true.member1 <- c(rep(1, n1), rep(2, (n - n1)))
+
+# Apply Leading Eigenvector community detection
+CL <- cluster_leading_eigen(g1.sbm)
+CLmember <- membership(CL)
+
+# Assign colors based on detected communities
+V(g1.sbm)$color <- c("red", "blue", "yellow", "orange", "green")[CLmember]
+plot(g1.sbm, main = "Leading Eigenvector, n = 68, p = 0.8, q = 0.2")
+
+# Compare detected community with true community
+diff_cl <- compare(CLmember, true.member1)
+print(diff_cl)
+
+# PART 3: Label Propagation Algorithm
+p <- 0.6
+q <- 0.2
+n <- 75
+n1 <- 38  # Adjusted to a more balanced community size
+
+mat <- matrix(c(p, q, q, p), 2, 2, byrow = TRUE)
+bsize <- c(n1, n - n1)
+
+g2.sbm <- sample_sbm(n, mat, bsize)
+true.member2 <- c(rep(1, n1), rep(2, (n - n1)))
+
+# Apply Label Propagation community detection
+cm <- cluster_label_prop(g2.sbm)
+cmmember <- membership(cm)
+
+# Assign colors based on detected communities
+V(g2.sbm)$color <- c("red", "blue", "yellow", "orange", "green")[cmmember]
+plot(g2.sbm, main = "Label Propagation, n = 75, p = 0.6, q = 0.2")
+
+# Compare detected community with true community
+diff_cm <- compare(cmmember, true.member2)
+print(diff_cm)
+
+# PART 4: Tracy-Widom Law and Eigenvalue Analysis
+X <- rtw(1000, beta = 1)  # generate data from TW1
+plot(density(X), main = "Density of TW1")  # plot density
+
+M <- 5
+RES <- numeric(M)
+
+for (re in 1:M) {
+  n <- gorder(g.sbm)
+  J <- matrix(1, n, n)
+  I <- diag(1, n, n)
+  adj <- as_adjacency_matrix(g.sbm, type = c("both"))
+  A <- as.matrix(adj)
+ 
+  p.hat <- mean(A)
+ 
+  A.tilde <- (A - n * p.hat * J + p.hat * I) / sqrt((n - 1) * p.hat * (1 - p.hat))
+ 
+  lambda <- eigen(A.tilde)$values[1]  # get the largest eigenvalue
+ 
+  Tn <- n^(2/3) * (lambda - 2)
+  RES[re] <- Tn
+}
+
+print(RES)
+qtw_val <- qtw(0.95)
+print(mean(RES > qtw_val))
+```
+
+
+
